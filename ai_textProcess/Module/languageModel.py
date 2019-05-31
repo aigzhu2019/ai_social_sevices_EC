@@ -8,6 +8,7 @@
 @Version    :
 @Purpose    :隐马尔可夫模型、线性插值平滑、拉普拉斯平滑、Viterbi算法
 """
+import numpy as np
 
 # 自定义方法，获得添加开始符号以及结束符号的分词结果
 def get_ngramsModel(ary_cws, ngram):
@@ -40,6 +41,42 @@ def get_ngramsModel(ary_cws, ngram):
     return ngrams_model, d_cmn, i_tn
 
 
+# 自定义方法，获取分好词的文本中p(s_i)，
+def get_pSen(lst_ngram, d_countNgrams, d_countN_1grams):
+    lst_p = []
 
+    for l in lst_ngram:
+        p = 1  # p初始化
+        for ng in l:
+            if ng[0] == '*':
+                bi = ng[1:]
+            else:
+                bi = ng[0:2]
+            #             print(ng, bi)
+            mol, deno = d_countNgrams.get(ng, None), d_countN_1grams.get(bi, None)
+            #             print('```',mol, deno)
+            if mol != None and deno != None:
+                p *= round(mol / deno, 5)
+            #                 print('\t',ng,bi ,mol/deno, p)
+            else:
+                p = 0
+                break
+
+        #         print(lst_ngram.index(l), p)
+        lst_p.append(p)
+    return lst_p
+
+
+# 自定义方法，计算测试集迷惑度
+def get_perplexity(l_p, M):
+    perp = 0
+    for p in l_p:
+        if not p:
+            perp += 0
+            continue
+        perp += np.log2(p)
+    perp /= M
+
+    return 2 ** (-perp)
 if __name__ == '__main__':
     pass
